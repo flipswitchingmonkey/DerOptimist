@@ -4,7 +4,7 @@
 #define MyAppName "Der Optimist"
 #define MyAppVersion "0.1.83"
 #define MyAppPublisher "908"
-#define MyAppURL "https://github.com/flipswitchingmonkey"
+#define MyAppURL "https://github.com/flipswitchingmonkey/DerOptimist"
 #define MyAppExeName "Der Optimist.exe"
 #define SourceFolder "..\DerOptimist\bin\x64\Release\"
 
@@ -32,27 +32,9 @@ SolidCompression=yes
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-[Tasks]
-;Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-
 [Files]
 Source: "{#SourceFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-;Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-
-[Run]
-;Filename: {sys}\sc.exe; Parameters: "start {#MyServiceName}" ; Flags: runhidden
-;Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[UninstallRun]
-;Filename: {sys}\sc.exe; Parameters: "stop {#MyServiceName}" ; Flags: runhidden
-;Filename: {sys}\sc.exe; Parameters: "delete {#MyServiceName}" ; Flags: runhidden
-
-[Registry]
-;Root: HKCR; Subkey: ".mov";                             ValueData: "{#MyAppName}";          Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
-;Root: HKCR; Subkey: "{#MyAppName}";                     ValueData: "Program {#MyAppName}";  Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
-;Root: HKCR; Subkey: "{#MyAppName}\DefaultIcon";             ValueData: "{app}\{#MyAppExeName},0";               ValueType: string;  ValueName: ""
-;Root: HKCR; Subkey: "{#MyAppName}\shell\open\command";  ValueData: """{app}\{#MyAppExeName}"" ""%1""";  ValueType: string;  ValueName: ""

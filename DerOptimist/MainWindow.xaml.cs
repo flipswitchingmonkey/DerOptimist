@@ -76,10 +76,7 @@ namespace DerOptimist
         private double ZoomLevelOffsetB { get; set; } = 0.0;
         private Point TranslateDragStartPos { get; set; }
         private Point MouseDragStartPos { get; set; }
-        //private bool dontRunValueChangedEventSliderA { get; set; } = false;
-        //private bool dontRunValueChangedEventSliderB { get; set; } = false;
-        //private bool dontRunPositionChangedEventSource { get; set; } = false;
-        //private bool dontRunPositionChangedEventDest { get; set; } = false;
+
         private bool dontUpdateAspectRatio = false;
         private bool _resetZoom = false;
         private bool wasPlayingBeforeDraggingA { get; set; } = false;
@@ -96,26 +93,34 @@ namespace DerOptimist
 
         public MainWindow()
         {
-            InitAndReadPreferences();
-            InitializeValues();
-            InitializeComponent();
-            SetupEventsSplitView();
-            ReadPresets();
-            this.Closing += MainWindow_Closing;
-            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-            ToggleShowLog(ToggleShowLog_Value);
-            ComboPixFmt.Loaded += (o, e) =>
+            try
             {
-                UpdatePixFmts();
-            };
-            UpdateMediaSources();
-            ReadPresetsMenuItems(Menu_PresetsRoot);
-            _originalCursor = Cursor;
-            HideRightPlayer();
-            MaxConcurrentEncoding = 2;
-            ButtonSendToQueue.IsEnabled = false;
-            ButtonRenderFinal.IsEnabled = false;
-            ButtonRenderPreview.IsEnabled = false;
+                InitAndReadPreferences();
+                InitializeValues();
+                InitializeComponent();
+                SetupEventsSplitView();
+                ReadPresets();
+                this.Closing += MainWindow_Closing;
+                AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+                ToggleShowLog(ToggleShowLog_Value);
+                ComboPixFmt.Loaded += (o, e) =>
+                {
+                    UpdatePixFmts();
+                };
+                UpdateMediaSources();
+                ReadPresetsMenuItems(Menu_PresetsRoot);
+                _originalCursor = Cursor;
+                HideRightPlayer();
+                MaxConcurrentEncoding = 2;
+                ButtonSendToQueue.IsEnabled = false;
+                ButtonRenderFinal.IsEnabled = false;
+                ButtonRenderPreview.IsEnabled = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                throw;
+            }
         }
 
         

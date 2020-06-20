@@ -275,9 +275,7 @@
     <Resource Include="res\fonts\fa5-Brands-Regular-400.otf" />
     <Resource Include="res\fonts\fa5-Free-Regular-400.otf" />
     <Resource Include="res\fonts\fa5-Free-Solid-900.otf" />
-    <None Include="MediaInfoDotNet.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="MediaInfoDotNet.dll.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
