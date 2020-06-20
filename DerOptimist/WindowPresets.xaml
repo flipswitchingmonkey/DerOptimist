@@ -1,0 +1,42 @@
+﻿<Window x:Class="DerOptimist.WindowPresets"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DerOptimist"
+        mc:Ignorable="d"
+        Title="WindowPresets" Height="490" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <TreeView Name="TreeViewPresets" SelectedItemChanged="TreeViewPresets_SelectedItemChanged" MouseDoubleClick="ButtonLoadPreset_Click" Grid.Column="0" VirtualizingStackPanel.IsVirtualizing="False">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type local:Preset}" ItemsSource="{Binding Items}">
+                    <TextBlock Text="{Binding Name}" />
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <GridSplitter Grid.Column="1" 
+                      Grid.RowSpan="1" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Stretch"
+                      Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" 
+                      ShowsPreview="true"
+                      Width="3"/>
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <local:RenderSettingsControl x:Name="RSControl" Grid.Row="0"/>
+            <DockPanel Grid.Row="1">
+                <Button Name="ButtonLoadPreset" Content="Load Preset" Click="ButtonLoadPreset_Click" DockPanel.Dock="Left" Width="130"/>
+                <Button Name="ButtonDeletePreset" Content="Delete Preset" Click="ButtonDeletePreset_Click" DockPanel.Dock="Right" Width="130"/>
+                <Label DockPanel.Dock="Right"/>
+            </DockPanel>
+        </Grid>
+    </Grid>
+</Window>

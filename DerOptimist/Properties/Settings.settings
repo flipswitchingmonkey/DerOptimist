@@ -1,0 +1,69 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DerOptimist.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ffmpegBinaryPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="defaultEncoderVideo" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="defaultOutputPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="defaultPreviewPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="defaultPreviewDuration" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="defaultFrameRate" Type="System.String" Scope="User">
+      <Value Profile="(Default)">25</Value>
+    </Setting>
+    <Setting Name="KeepPreviewFiles" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="KeepPreviewFilesHistoryDelete" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Bookmarks" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="defaultSingleImageDuration" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="lastOpenedDirectory" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:\</Value>
+    </Setting>
+    <Setting Name="extensionsVideo" Type="System.String" Scope="User">
+      <Value Profile="(Default)">avi, mp4, mpg, mov, mxf, mkv, ogm, flv, m4v, rm, wmv, webm</Value>
+    </Setting>
+    <Setting Name="extensionsAudio" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mp3, aiff, aif, m4a, mpa, wma, aac, wav, ogg</Value>
+    </Setting>
+    <Setting Name="extensionsImage" Type="System.String" Scope="User">
+      <Value Profile="(Default)">jpg, png, tif, tiff, dpx, exr, dds, tga, iff, bmp, gif, img, jpe, jpeg, pbm, pcx, pct, ppm, ras, psd, psb, yuv</Value>
+    </Setting>
+    <Setting Name="extensionsSkip" Type="System.String" Scope="User">
+      <Value Profile="(Default)">preset, com, exe, txt, doc, xls, xlss, js, cpp, DS_Store, rar, zip, exe, com,  json, dat, bin</Value>
+    </Setting>
+    <Setting Name="defaultEncoderAudio" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="TimeCodeFontSize" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="TimeCodeFontColor" Type="System.String" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="PresetFolderPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="RecentFiles" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Version" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

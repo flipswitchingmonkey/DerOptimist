@@ -1,0 +1,141 @@
+﻿<UserControl x:Class="DerOptimist.RenderSettingsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DerOptimist"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Background="LightGray" x:Name="GridRenderSettings">
+        <ScrollViewer>
+        <StackPanel Orientation="Vertical">
+            <TextBlock Text="{Binding Path=Name, FallbackValue='Render Settings'}" FontWeight="Bold" FontSize="16"/>
+            <TextBlock Text="Encoder Settings" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Video:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=EncoderVideo, FallbackValue='---'}" Width="100"/>
+                <TextBlock Text="Quality:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=QualityVideo, FallbackValue='---'}" Width="50" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Audio:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=EncoderAudio, FallbackValue='---'}" Width="100"/>
+                <TextBlock Text="Quality:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=QualityAudio, FallbackValue='---'}" Width="50" />
+                <TextBlock Text="Rate:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=AudioSampleRate, FallbackValue='Default'}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="PixFmt:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=PixFmt, FallbackValue='---'}" Width="100"/>
+                <TextBlock Text="Fps:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=FrameRate, FallbackValue='--'}"/>
+            </StackPanel>
+            <TextBlock Text="Extra Arguments" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Video:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=EncoderVideo.OutputArgs, FallbackValue='--'}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Audio:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=EncoderAudio.OutputArgs, FallbackValue='--'}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Filter:" Width="50" FontStyle="Italic"/>
+                <TextBlock Text="{Binding Path=ExtraVideoFilters, FallbackValue='--'}"/>
+            </StackPanel>
+            <TextBlock Text="Resize Settings" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding Path=ResizeVideo}" Content="Enabled" IsHitTestVisible="False" Focusable="False" VerticalContentAlignment="Center"/>
+                <Label VerticalContentAlignment="Center">
+                    <Label.Content>
+                        <MultiBinding StringFormat="{}(Target W/H: {0} x {1})" FallbackValue="(Target W/H: 0 x 0)">
+                            <Binding Path="Width"/>
+                            <Binding Path="Height"/>
+                        </MultiBinding>
+                    </Label.Content>
+                </Label>
+            </StackPanel>
+            <TextBlock Text="Color Settings" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding Path=ResizeVideo}" Content="Apply LUT" IsHitTestVisible="False" Focusable="False"/>
+                <Label>
+                    <Label.Content>
+                        <MultiBinding StringFormat="{}({0})" FallbackValue="()">
+                            <Binding Path="LUT"/>
+                        </MultiBinding>
+                    </Label.Content>
+                </Label>
+            </StackPanel>
+            <TextBlock Text="Timecode Settings" FontWeight="Bold"/>
+            <CheckBox IsChecked="{Binding Path=BurnTimeCode}" Content="Burn TimeCode" IsHitTestVisible="False" Focusable="False" VerticalContentAlignment="Center"/>
+            <StackPanel Orientation="Horizontal">
+                <CheckBox IsChecked="{Binding Path=SetTimeCode}" Content="Set TimeCode" IsHitTestVisible="False" Focusable="False" VerticalContentAlignment="Center"/>
+                <Label FontFamily="{StaticResource FiraCodeRegular}">
+                    <Label.Content>
+                        <MultiBinding StringFormat="{}{0}:{1}:{2}:{3}" FallbackValue="00:00:00:00">
+                            <Binding Path="TCh" FallbackValue="00"/>
+                            <Binding Path="TCm" FallbackValue="00"/>
+                            <Binding Path="TCs" FallbackValue="00"/>
+                            <Binding Path="TCf" FallbackValue="00"/>
+                        </MultiBinding>
+                    </Label.Content>
+                </Label>
+            </StackPanel>
+            <StackPanel Name="GridRenderInstanceDetails">
+                <TextBlock Text="Render Instance Details" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="In:" Width="30" FontStyle="Italic"/>
+                    <TextBlock Text="{Binding Path=RangeStart, FallbackValue='---'}" Width="80"/>
+                    <TextBlock Text="Out:" Width="30" FontStyle="Italic"/>
+                    <TextBlock Text="{Binding Path=RangeEnd, FallbackValue='--'}" Width="80"/>
+                    <TextBlock Text="Duration:" Width="60" FontStyle="Italic"/>
+                    <TextBlock Text="{Binding Path=Duration, FallbackValue='--'}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Source:" Width="50" FontStyle="Italic"/>
+                    <TextBlock>
+                        <Hyperlink Click="ButtonTagOpen_Click" Tag="{Binding Path=SourcePath, FallbackValue=''}" ToolTip="{Binding Path=SourcePath, FallbackValue=''}">
+                            <TextBlock Text="{Binding Path=SourcePath, FallbackValue=''}" />
+                        </Hyperlink>
+                    </TextBlock>
+                        <!--<TextBlock Text="{Binding Path=SourcePath, FallbackValue='-'}" Width="250" />-->
+                    <!--<Button Width="40" Content="Copy" Name="ButtonCopySource" Click="ButtonTagToClipboard_Click" Tag="{Binding Path=SourcePath, FallbackValue=''}"/>-->
+                    <!--<Button Width="40" Content="Open" Name="ButtonOpenSource" Click="ButtonTagOpen_Click" Tag="{Binding Path=SourcePath, FallbackValue=''}"/>-->
+                    <!--<Button Width="45" Content="Go to" Name="ButtonExploreSource" Click="ButtonExplore_Click" Tag="{Binding Path=SourcePath, FallbackValue=''}"/>-->
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Output:" Width="50" FontStyle="Italic"/>
+                    <!--<TextBlock Text="{Binding Path=OutputPath, FallbackValue='-'}" Width="250" />-->
+                    <TextBlock>
+                        <Hyperlink Click="ButtonTagChangeOutput_Click" Tag="{Binding Path=OutputPath, FallbackValue=''}" ToolTip="{Binding Path=OutputPath, FallbackValue=''}">
+                            <TextBlock Text="{Binding Path=OutputPath, FallbackValue=''}" />
+                        </Hyperlink>
+                    </TextBlock>
+                        <!--<Button Width="40" Content="Copy" Name="ButtonCopyOutput" Click="ButtonTagToClipboard_Click" Tag="{Binding Path=OutputPath, FallbackValue=''}"/>-->
+                    <!--<Button Width="40" Content="Open" Name="ButtonOpenOutput" Click="ButtonTagOpen_Click" Tag="{Binding Path=OutputPath, FallbackValue=''}"/>-->
+                    <!--<Button Width="45" Content="Go to" Name="ButtonExploreOutput" Click="ButtonExplore_Click" Tag="{Binding Path=OutputPath, FallbackValue=''}"/>-->
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="ffmpeg:" Width="50" FontStyle="Italic"/>
+                    <TextBlock>
+                        <Hyperlink Click="ButtonTagToClipboard_Click" Tag="{Binding Path=FfmpegParameters, FallbackValue=''}" ToolTip="{Binding Path=FfmpegParameters, FallbackValue=''}">
+                            <TextBlock Text="{Binding Path=FfmpegParameters, FallbackValue=''}" />
+                        </Hyperlink>
+                    </TextBlock>
+                        <!--<TextBlock Text="{Binding Path=FfmpegParameters, FallbackValue=''}" Width="250" />-->
+                    <!--<Button Width="40" Content="Copy" Name="ButtonCopyFfmpeg" Click="ButtonTagToClipboard_Click" Tag="{Binding Path=FfmpegParameters, FallbackValue=''}"/>-->
+                </StackPanel>
+            </StackPanel>
+            <!--
+            public string ReplaceAudioFileName { get; set; }
+        public TimeSpan RangeStart { get; set; }
+        public TimeSpan RangeEnd { get; set; }
+        public TimeSpan Duration { get; set; }
+        public MediaType MediaType { get; set; } = MediaType.Unknown;
+
+            -->
+        </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

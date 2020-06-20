@@ -1,0 +1,547 @@
+﻿<Controls:MetroWindow x:Class="DerOptimist.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DerOptimist"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:ffme="clr-namespace:Unosquare.FFME;assembly=ffme.win"
+        xmlns:prefs="clr-namespace:DerOptimist.Properties"
+        xmlns:ffenums ="clr-namespace:FFmpeg.NET.Enums"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        x:Name="FFMainWindow" 
+        Title="Der Optimist" Height="720" Width="1280" SizeChanged="FFMainWindow_SizeChanged" PreviewKeyDown="FFMainWindow_PreviewKeyDown" Icon="icon.ico">
+    <Controls:MetroWindow.Resources>
+        <local:TimeSpanToDoubleConverter x:Key="TimeSpanToDoubleConverter"/>
+        <local:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
+        <local:TimeSpanWithOffsetToStringConverter x:Key="TimeSpanWithOffsetToStringConverter"/>
+        <local:TimeSpanToFramesConverter x:Key="TimeSpanToFramesConverter"/>
+        <!--<local:DurationToDoubleConverter x:Key="DurationToDoubleConverter"/>-->
+        <!--<local:DurationToStringConverter x:Key="DurationToStringConverter"/>-->
+        <!--<local:DurationToFramesConverter x:Key="DurationToFramesConverter"/>-->
+        <local:DoubleToPercentConverter x:Key="DoubleToPercentConverter"/>
+    </Controls:MetroWindow.Resources>
+    <!--<Controls:MetroWindow.CommandBindings>
+        <CommandBinding Command="{x:Static local:Commands.OpenRecent}"
+                    CanExecute="OpenRecentBinding_CanExecute"
+                    Executed="OpenRecentBinding_Executed"/>
+    </Controls:MetroWindow.CommandBindings>-->
+    <Controls:MetroWindow.RightWindowCommands>
+        <Controls:WindowCommands>
+            <Button Content="Press F1 for help" Click="ToggleOverlayHelp"/>
+            <Button x:Name="ButtonShowRenderHistory" Width="130px" Content="Render History" Click="ShowRenderHistory_Click"/>
+            <Button x:Name="ButtonShowQueue" Width="130px" Content="Render Queue" Click="ButtonShowQueue_Click"/>
+            <Button x:Name="ButtonShowPresets" Width="130px" Content="Manage Presets" Click="ButtonShowPresets_Click"></Button>
+            <Button x:Name="ButtonShowPreferences" Width="130px" Content="Preferences" Click="ButtonShowPreferences_Click"></Button>
+            <Button Content="{Binding ElementName=FFMainWindow, Path=VERSION, Mode=OneTime, UpdateSourceTrigger=Default}"/>
+        </Controls:WindowCommands>
+    </Controls:MetroWindow.RightWindowCommands>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="MenuBar" Height="20"></RowDefinition>
+            <RowDefinition x:Name="ButtonBar" Height="30px"></RowDefinition>
+            <!--<RowDefinition x:Name="ToggleBar" Height="30px"></RowDefinition>-->
+            <RowDefinition x:Name="ToolBar" Height="Auto"></RowDefinition>
+            <RowDefinition Height="3*"></RowDefinition>
+            <RowDefinition x:Name="LogBar" Height="1*"></RowDefinition>
+            <RowDefinition Height="25px"></RowDefinition>
+        </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" Grid.ColumnSpan="2">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="_File" Name="Menu_File" VerticalAlignment="Center" Height="24" Padding="5 2 5 2">
+                    <MenuItem Header="_Open" Name="Menu_Open" Click="Menu_Open_Click"/>
+                    <MenuItem Header="_Recent Files" Name="Menu_Open_Recent" Click="Menu_Open_Recent_Click"
+                              ItemsSource="{Binding Source={x:Static prefs:Settings.Default}, Path=RecentFiles}">
+                        <!--<ItemsControl.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding}" />
+                                <Setter Property="Command" Value="{Binding Source={x:Static local:Commands.OpenRecent}}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>-->
+                    </MenuItem>
+                    <MenuItem Header="_Close File" Name="Close_File" Click="Close_File_Click"/>
+                    <MenuItem Header="_Quit" Name="Menu_Quit" Click="Menu_Quit_Click"/>
+                </MenuItem>
+                <MenuItem Header="Render" VerticalAlignment="Center" Height="24" Padding="5 2 5 2">
+                    <MenuItem Header="_Render"/>
+                    <MenuItem Header="_Final Render"/>
+                </MenuItem>
+                <MenuItem Header="Presets" VerticalAlignment="Center" Height="24" Padding="5 2 5 2">
+                    <MenuItem Header="Presets" Name="Menu_PresetsRoot" />
+                    <MenuItem Header="Manage Presets" Name="Menu_ManagePresets" Click="ButtonShowPresets_Click"/>
+                    <MenuItem Header="Save current settings as preset" Name="Menu_SaveCurrentSettingsAsPreset" Click="Menu_SaveCurrentSettingsAsPreset_Click"/>
+                    <MenuItem Header="Refresh" Name="Menu_PresetsRefresh" Click="Menu_PresetsRefresh_Click"/>
+                </MenuItem>
+            </Menu>
+            <StackPanel></StackPanel>
+        </DockPanel>
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="2">
+            <Button x:Name="ButtonOpenFile" Width="130px" Content="Open (Sequence)" Click="ButtonOpenFile_Click" DockPanel.Dock="Left"/>
+            <Button x:Name="ButtonOpenStdFile" Width="130px" Content="Open (Standard)" Click="ButtonOpenStdFile_Click" DockPanel.Dock="Left"/>
+            <Button x:Name="ButtonRenderPreview" Width="130px" Content="Render (Preview)" Click="ButtonRenderPreview_Click" DockPanel.Dock="Left"/>
+            <Button x:Name="ButtonRenderFinal" Width="130px" Content="Render (Final)" Click="ButtonRenderFinal_Click" DockPanel.Dock="Left"/>
+            <Button x:Name="ButtonSendToQueue" Width="130px" Content="Send to Queue" Click="ButtonSendToQueue_Click" DockPanel.Dock="Left"/>
+            <!--<Button x:Name="ButtonShowRenderHistory" Width="130px" Content="Render History" Click="ShowRenderHistory_Click" DockPanel.Dock="Left"/>-->
+            <!--<Button x:Name="ButtonShowPreferences" Width="130px" Content="Preferences" Click="ButtonShowPreferences_Click"></Button>-->
+            <Button x:Name="ButtonToggleDualScreen" Width="30px" Content="&#xf0db;" FontFamily="{StaticResource FontAwesomeSolid}" 
+                    ToolTip="Show/Hide Right Screen" Margin="2 0 2 0"
+                    Click="ButtonToggleDualScreen_Click" DockPanel.Dock="Right"/>
+            <ToggleButton DockPanel.Dock="Right" Width="30" Content="&#xF0C1;" ToolTip="Link right player playback position to left"
+                          FontFamily="{StaticResource FontAwesomeSolid}" x:Name="ToggleLinkPlayers" Margin="2 0 2 0"
+                          IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleLinkedPlayers_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <ToggleButton Width="30" Content="&#xF0E2;" FontFamily="{StaticResource FontAwesomeSolid}"
+                          x:Name="ToggleLoopedPlayback" Margin="2 0 2 0" DockPanel.Dock="Right" ToolTip="Looped playback"
+                          IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleLoopedPlayback_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <ToggleButton Width="30" x:Name="ToggleRangeMode" Content="&#xf362;" FontFamily="{StaticResource FontAwesomeSolid}" FontSize="12"  Margin="2 0 2 0"
+                          ToolTip="Manual Range Mode - When active, select preview range via the range slider below the source video. Otherwise X seconds from the current play position is used."
+                          IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleManualRangeMode_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right"/>
+            <CheckBox Content="Auto-Render" Name="CheckAutoRenderPreview" ToolTip="Automatically render a new preview when the Quality is changed" VerticalContentAlignment="Center" Margin="5 5 5 5" 
+                        IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleAutoPreview_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right"/>
+            <Slider Name="SliderVolume" Minimum="0" Maximum="1" Value="1" ToolTip="Volume" Width="100" DockPanel.Dock="Right" VerticalContentAlignment="Center" VerticalAlignment="Center" ValueChanged="SliderVolume_ValueChanged"/>
+            <Label Content="&#xF026;" FontSize="16" Width="30" FontFamily="{StaticResource FontAwesomeSolid}" DockPanel.Dock="Right" VerticalContentAlignment="Center"/>
+            <Label DockPanel.Dock="Right"/>
+        </DockPanel>
+        <!--<StackPanel Grid.Row="2" HorizontalAlignment="Left" Orientation="Horizontal">-->
+        
+
+        <!--<ToggleButton DockPanel.Dock="Bottom" Height="23px" x:Name="ToggleFitVideoToWindowAuto" Content="&#xf31e;" FontFamily="{StaticResource FontAwesomeSolid}" FontSize="12"
+                                  ToolTip="Toggle Fit Video To Window."
+                                  IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleFitVideoToWindowAuto_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Button DockPanel.Dock="Bottom" Height="23px" x:Name="ButtonCenterVideo" Content="&#xf78c;" FontFamily="{StaticResource FontAwesomeSolid}" FontSize="11"/>-->
+        <!--<Label DockPanel.Dock="Top" Content="&#xF002;" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="23" Height="23" FontSize="11" />
+            <Slider DockPanel.Dock="Bottom" Orientation="Horizontal" x:Name="SliderZoomLevel" Width="200"
+                            Value="{Binding ElementName=FFMainWindow, Path=ZoomLevel_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                            HorizontalAlignment="Center" Maximum="4" TickPlacement="None" TickFrequency="0.1"/>
+            <TextBlock Width="30" Text="{Binding ElementName=FFMainWindow, Path=ZoomLevel_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" VerticalAlignment="Center"/>
+            <Button DockPanel.Dock="Bottom" Height="23px" x:Name="ButtonZoomLevel1" Content="1:1"/>-->
+        <!--</StackPanel>-->
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="VideoBar" Height="30px"></RowDefinition>
+                <RowDefinition x:Name="VideoBar2" Height="0px"></RowDefinition>
+                <RowDefinition x:Name="VideoBar3" Height="0px"></RowDefinition>
+                <RowDefinition x:Name="AudioBar" Height="30px"></RowDefinition>
+                <RowDefinition x:Name="AudioBar2" Height="0px"></RowDefinition>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.Row="0">
+                <ToggleButton x:Name="ToggleMoreVideo2" Content="Filter" DockPanel.Dock="Right" IsChecked="False" Checked="ToggleMoreVideo2_Checked" Unchecked="ToggleMoreVideo2_Unchecked"/>
+                <ToggleButton x:Name="ToggleMoreVideo" Content="More" DockPanel.Dock="Right" IsChecked="False" Checked="ToggleMoreVideo_Checked" Unchecked="ToggleMoreVideo_Unchecked"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}">
+                    <Label Content="Video" VerticalContentAlignment="Center" Width="45"/>
+                    <ComboBox Name="ComboEncoderVideo" Margin="5 2 5 2" Width="200px"
+                            ItemsSource="{Binding Source={x:Static ffenums:VideoCodec.SettingsCollection}, Mode=OneWay}"
+                            SelectedValuePath="Name" DisplayMemberPath="Name" SelectedValue="{Binding Source={x:Static prefs:Settings.Default}, Path=defaultEncoderVideo}" SelectionChanged="ComboEncoderVideo_SelectionChanged">
+                    </ComboBox>
+                    <Label Content="{Binding ElementName=FFMainWindow, Path=LabelQuality_Content, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Width="50px" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Slider Name="SliderQualityVideo" 
+                            Minimum="{Binding ElementName=FFMainWindow, Path=SliderQuality_MinValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                            Maximum="{Binding ElementName=FFMainWindow, Path=SliderQuality_MaxValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                            Value="{Binding ElementName=FFMainWindow, Path=SliderQuality_QualityValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            SmallChange="{Binding ElementName=FFMainWindow, Path=SliderQuality_StepValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            LargeChange="{Binding SmallChange, ElementName=SliderQualityVideo}"
+                            TickFrequency="{Binding SmallChange, ElementName=SliderQualityVideo}"
+                            TickPlacement="BottomRight" Width="200px" ValueChanged="SliderQualityVideo_ValueChanged"
+                            IsSnapToTickEnabled="True" Thumb.DragCompleted="SliderQualityVideo_DragCompleted" Margin="0 5 0 5" />
+                    <Label Name="LabelQualityVideo" Content="{Binding Value, ElementName=SliderQualityVideo, StringFormat=D2}" Width="50px" VerticalAlignment="Center" FontFamily="{StaticResource FiraCodeRegular}"/>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                    <CheckBox Content="Resize" Name="CheckResizeVideo" ToolTip="Resize output video" VerticalContentAlignment="Center" Margin="0 5 5 5" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleResizeVideo_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <!--<Label Content="W:H" VerticalAlignment="Center"/>-->
+                    <!--<Label Content="H:" VerticalAlignment="Center"/>-->
+                    <TextBox Name="ResizeVideoWidth" Width="60" Margin="2 2 2 2" IsEnabled="{Binding IsChecked, ElementName=CheckResizeVideo}" FontFamily="{StaticResource FiraCodeRegular}"
+                             PreviewKeyDown="ResizeVideoWidth_PreviewKeyDown" 
+                             TextChanged="ResizeVideoWidth_TextChanged" VerticalContentAlignment="Center"
+                             PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting"/>
+                    <ToggleButton Name="CheckForceAspectRatio" Content="&#xF0C1;" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Keep aspect ratio" VerticalContentAlignment="Center" Margin="2" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleForceAspectRatio_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Checked="CheckForceAspectRatio_Checked" />
+                    <TextBox Name="ResizeVideoHeight" Width="60" Margin="2 2 5 2" IsEnabled="{Binding IsChecked, ElementName=CheckResizeVideo}" FontFamily="{StaticResource FiraCodeRegular}"
+                             TextChanged="ResizeVideoHeight_TextChanged" 
+                             PreviewKeyDown="ResizeVideoWidth_PreviewKeyDown" VerticalContentAlignment="Center"
+                             PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting"/>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                    <Label x:Name="ComboInputFpsLabel" Content="Input FPS" VerticalAlignment="Center" ToolTip="Framerate for input image sequences"/>
+                    <ComboBox x:Name="ComboInputFps" FontFamily="{StaticResource FiraCodeRegular}" MinWidth="50"
+                            ItemsSource="{Binding Source={x:Static ffenums:FrameRates.FrameRateCollection}, Mode=OneWay}"
+                            SelectedValue="{Binding ElementName=FFMainWindow, Path=InputFramerate_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            SelectedValuePath="Key"
+                            DisplayMemberPath="DisplayName"
+                            IsEnabled="False"
+                            SelectionChanged="ComboInputFps_SelectionChanged"
+                            />
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                    <CheckBox Content="Render preview range" Name="CheckUseRangeForFinal" ToolTip="Use preview in/out range for final render as well" VerticalContentAlignment="Center" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleUseRangeForFinal_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Padding="8,-1,0,0"/>
+                </StackPanel>
+            </DockPanel>
+            <DockPanel Grid.Row="1">
+                <Label Content="" VerticalContentAlignment="Center" Width="45" FontStyle="Italic" IsEnabled="False"/>
+                <CheckBox Content="TimeCode" Name="CheckBurnInTimeCode" ToolTip="Draw TimeCode overlay onto rendered video" VerticalContentAlignment="Center" Margin="5 5 5 5" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleCheckBurnInTimeCode_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                <CheckBox Content="Set:" Name="CheckSetTimeCode" ToolTip="Override the TimeCode start time (HH:MM:SS:FF)" VerticalContentAlignment="Center" Margin="0 5 5 5" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleCheckSetTimeCode_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox x:Name="TextBoxTCh" Text="00" VerticalContentAlignment="Center" PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting" ToolTip="Hours" FontFamily="{StaticResource FiraCodeRegular}"/>
+                <TextBox x:Name="TextBoxTCm" Text="00" VerticalContentAlignment="Center" PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting" ToolTip="Minutes" FontFamily="{StaticResource FiraCodeRegular}"/>
+                <TextBox x:Name="TextBoxTCs" Text="00" VerticalContentAlignment="Center" PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting" ToolTip="Seconds" FontFamily="{StaticResource FiraCodeRegular}"/>
+                <TextBox x:Name="TextBoxTCf" Text="00" VerticalContentAlignment="Center" PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting" ToolTip="Frames" FontFamily="{StaticResource FiraCodeRegular}"/>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" DockPanel.Dock="Left"/>
+                <Label Content="PixFmt" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                <ComboBox Name="ComboPixFmt" ItemsSource="{Binding SupportedPixFmts, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource FiraCodeRegular}" Margin="2 2 2 2" Width="130" DockPanel.Dock="Left"/>
+                <!--<Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />-->
+                <TextBox Name="TextBoxExtraArgsVideo" Margin="5 2 5 2" DockPanel.Dock="Right"
+                         Text="{Binding ElementName=ComboEncoderVideo, Path=SelectedItem.OutputArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="400"/>
+                <Label Content="Encoder Arguments:" VerticalAlignment="Center" DockPanel.Dock="Right"/>
+                <Separator DockPanel.Dock="Right"/>
+            </DockPanel>
+            <DockPanel Grid.Row="2">
+                <Label Content="" VerticalContentAlignment="Center" Width="45" FontStyle="Italic" IsEnabled="False"/>
+                <CheckBox Content="LUT" Name="CheckApplyLUT" ToolTip="Apply LUT to output video" VerticalContentAlignment="Center" Margin="5 5 5 5" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleCheckApplyLUT_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox x:Name="TextBoxLUTFileName" Width="200" Margin="0 2 0 2" Text="" TextChanged="TextBoxLUTFileName_TextChanged"/>
+                <Button Name="ButtonLUTFileName" Content="..." Click="ButtonLUTFileName_Click" Margin="2 2 2 2"/>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                <CheckBox Content="Gamma" Name="CheckApplyGamma" ToolTip="Apply LUT to output video" VerticalContentAlignment="Center" Margin="5 5 5 5" 
+                            IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleCheckApplyGamma_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox x:Name="TextBoxGamma" Width="35" Margin="0 2 0 2" Text="1.0" PreviewTextInput="NumbersOnly_PreviewTextInput" DataObject.Pasting="NumbersOnly_Pasting" ToolTip="Gamma" FontFamily="{StaticResource FiraCodeRegular}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Label Content="Range(In)" VerticalContentAlignment="Center"/>
+                <ComboBox Name="ComboBoxColorRangeIn" SelectedIndex="0" Margin="2">
+                    <ComboBoxItem Content="Default" Tag="default"/>
+                    <ComboBoxItem Content="0-255" Tag="pc" />
+                    <ComboBoxItem Content="16-235" Tag="tv" />
+                </ComboBox>
+                <Label Content="Range(Out)" VerticalContentAlignment="Center"/>
+                <ComboBox Name="ComboBoxColorRangeOut" SelectedIndex="0" Margin="2">
+                    <ComboBoxItem Content="Default" Tag="default"/>
+                    <ComboBoxItem Content="0-255" Tag="pc"/>
+                    <ComboBoxItem Content="16-235" Tag="tv"/>
+                </ComboBox>
+                <TextBox Name="TextBoxExtraArgsVideoFilter" Margin="5 2 5 2" DockPanel.Dock="Right"
+                         Text=""
+                         Width="400"/>
+                <Label Content="Extra Video Filters:" VerticalAlignment="Center" DockPanel.Dock="Right"/>
+                <Separator DockPanel.Dock="Right"/>
+            </DockPanel>
+            <DockPanel Grid.Row="3">
+                <ToggleButton x:Name="ToggleMoreAudio" Content="More" DockPanel.Dock="Right" IsChecked="False" Checked="ToggleMoreAudio_Checked" Unchecked="ToggleMoreAudio_Unchecked"/>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" DockPanel.Dock="Left" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" >
+                    <Label Content="Audio" VerticalContentAlignment="Center" Width="45"/>
+                    <ComboBox Name="ComboEncoderAudio" Margin="5 2 5 2" Width="200px"
+                    ItemsSource="{Binding Source={x:Static ffenums:AudioCodec.SettingsCollection}, Mode=OneWay}"
+                    SelectedValuePath="Name" DisplayMemberPath="Name" SelectedValue="{Binding Source={x:Static prefs:Settings.Default}, Path=defaultEncoderAudio}" SelectionChanged="ComboEncoderAudio_SelectionChanged">
+                    </ComboBox>
+                    <Label Content="{Binding ElementName=FFMainWindow, Path=LabelQualityAudio_Content, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Width="50px" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Slider Name="SliderQualityAudio" 
+                    Minimum="{Binding ElementName=FFMainWindow, Path=SliderQualityAudio_MinValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                    Maximum="{Binding ElementName=FFMainWindow, Path=SliderQualityAudio_MaxValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" 
+                    Value="{Binding ElementName=FFMainWindow, Path=SliderQualityAudio_QualityValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                    SmallChange="{Binding ElementName=FFMainWindow, Path=SliderQualityAudio_StepValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    LargeChange="{Binding SmallChange, ElementName=SliderQualityAudio}"
+                    TickFrequency="{Binding SmallChange, ElementName=SliderQualityAudio}"
+                    TickPlacement="BottomRight" Width="200px" ValueChanged="SliderQualityAudio_ValueChanged"
+                    IsSnapToTickEnabled="True" Thumb.DragCompleted="SliderQualityAudio_DragCompleted" Margin="0 5 0 5" />
+                    <Label Name="LabelQualityAudio" Content="{Binding Value, ElementName=SliderQualityAudio, StringFormat=D2}" Width="50px" VerticalAlignment="Center" FontFamily="{StaticResource FiraCodeRegular}"/>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                    <Label Content="SampleRate" VerticalAlignment="Center" Margin="0 2 0 2"/>
+                    <ComboBox Name="ComboAudioSampleRate" Margin="5 2 5 2"
+                          ItemsSource="{Binding Source={x:Static ffenums:AudioCodec.SampleRates}, Mode=OneWay}"
+                          SelectedIndex="0"
+                          SelectedValuePath="Value"
+                          DisplayMemberPath="Key"/>
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
+            </DockPanel>
+            <DockPanel Grid.Row="4">
+                <Label Content="" VerticalContentAlignment="Center" Width="45" FontStyle="Italic" IsEnabled="False"/>
+                <CheckBox Content="Replace" Name="CheckAudioReplace" ToolTip="Replace/Add Audio" VerticalContentAlignment="Center" Margin="5 5 5 5" DockPanel.Dock="Left"
+                        IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleReplaceAudio_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Name="TextBoxAudioFileName" Width="400" Margin="0 2 0 2" Text="" DockPanel.Dock="Left" TextChanged="TextBoxAudioFileName_TextChanged"/>
+                <Button Name="ButtonAudioFileName" Content="..." Click="ButtonAudioFileName_Click" Margin="2 2 2 2" DockPanel.Dock="Left"/>
+                <TextBox Name="TextBoxExtraArgsAudio" Margin="5 2 5 2" DockPanel.Dock="Right"
+                        Text="{Binding ElementName=ComboEncoderAudio, Path=SelectedItem.OutputArgs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Width="400"/>
+                <Label Content="Encoder Arguments:" VerticalAlignment="Center" DockPanel.Dock="Right"/>
+                <Separator DockPanel.Dock="Right"/>
+            </DockPanel>
+        </Grid>
+        <Border x:Name="BorderMediaView" Grid.Row="3" Grid.ColumnSpan="2">
+            <Grid Grid.Row="1" x:Name="GridSplitView">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="LeftColumn" Width="1*"></ColumnDefinition>
+                    <!--<ColumnDefinition Width="25px"></ColumnDefinition>-->
+                    <!--<ColumnDefinition Width="Auto"></ColumnDefinition>-->
+                    <ColumnDefinition x:Name="RightColumn" Width="1*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="40px"/>
+                        <RowDefinition Height="25px"/>
+                        <RowDefinition Height="20px"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="1" Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250px"></ColumnDefinition>
+                            <ColumnDefinition Width="1*" MinWidth="150"></ColumnDefinition>
+                            <ColumnDefinition Width="250px"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Vertical" Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Label Content="&#xF017;" FontFamily="{StaticResource FontAwesome}" ToolTip="Current Playtime" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                                <!--<TextBlock x:Name="LabelMediaACurrent" 
+                                           Text="{Binding ElementName=FFMainWindow, Path=LabelMediaACurrent_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" Height="20px" Padding="2px" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>-->
+                                <Label MinWidth="90" Height="20px" Padding="2px" HorizontalAlignment="Left" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}" 
+                                    Content="{Binding ElementName=MediaA, Path=Position, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToStringConverter}}"/>
+                                <Label Content="F:" Width="20" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalAlignment="Bottom"/>
+                                <Label Width="150" Height="20px" Padding="2px" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}">
+                                    <Label.Content>
+                                        <MultiBinding Converter="{StaticResource TimeSpanToFramesConverter}">
+                                            <Binding ElementName="MediaA" Path="Position" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                            <Binding ElementName="MediaA" Path="VideoFrameRate" Mode="OneWay" UpdateSourceTrigger="PropertyChanged" />
+                                            <Binding ElementName="MediaA" Path="NaturalDuration" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                        </MultiBinding>
+                                    </Label.Content>
+                                </Label>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Label Content="&#xf2f5;" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Range In-Point" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                                <Label x:Name="LabelMediaAInPoint" Content="0" Height="20px" Padding="2px" FontFamily="{StaticResource FiraCodeRegular}" HorizontalContentAlignment="Left" HorizontalAlignment="Left" VerticalContentAlignment="Bottom"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="ButtonSetInPoint" Width="30px" Height="20px" Padding="0" Content="&#xf2f5;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Set In-Point" HorizontalAlignment="Center" VerticalAlignment="Center"></Button>
+                            <!--<Button x:Name="ButtonPlayA" Width="40px" Content="&#xf04b;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Play" HorizontalAlignment="Center" VerticalAlignment="Center"></Button>-->
+                            <ToggleButton x:Name="ButtonPlayA" IsChecked="{Binding ElementName=MediaA, Path=IsPlaying, Mode=OneWay, UpdateSourceTrigger=Default}" Width="40px" Content="&#xf04b;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Play" HorizontalAlignment="Center" VerticalAlignment="Center"></ToggleButton>
+                            <Button x:Name="ButtonSetOutPoint" Width="30px" Height="20px" Padding="0" Content="&#xF2F6;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Set Out-Point" HorizontalAlignment="Center" VerticalAlignment="Center"></Button>
+                            <!--<Button x:Name="ButtonPlayRangeA" Width="40px" Content="&#xF2F1;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Play Range" HorizontalAlignment="Center" VerticalAlignment="Center"></Button>-->
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Grid.Column="2">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <!--<Label x:Name="LabelMediaAEnd" Content="End" Height="20px" MinWidth="200" Padding="2px" HorizontalContentAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Top"/>-->
+                                <!--<Label Content="Frames:" Width="75" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalAlignment="Bottom"/>
+                                <Label Width="50" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}">
+                                    <Label.Content>
+                                        <MultiBinding Converter="{StaticResource DurationToFramesConverter}">
+                                            <Binding ElementName="MediaA" Path="NaturalDuration" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                            <Binding ElementName="MediaA" Path="VideoFrameRate" Mode="OneWay" UpdateSourceTrigger="PropertyChanged" />
+                                        </MultiBinding>
+                                    </Label.Content>
+                                </Label>-->
+
+                                <Label MinWidth="90" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}"
+                                    Content="{Binding ElementName=MediaA, Path=NaturalDuration, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToStringConverter}}"/>
+                                <Label Content="&#xF28D;" FontFamily="{StaticResource FontAwesome}" ToolTip="Clip End" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Label x:Name="LabelMediaAOutPoint" Content="0" Height="20px" Padding="2px" FontFamily="{StaticResource FiraCodeRegular}" HorizontalContentAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <Label Content="&#xF2F6;" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Range Out-Point" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                            </StackPanel>
+                        </StackPanel>
+
+                    </Grid>
+                    <DockPanel Grid.Row="2" Grid.Column="0">
+                        <Slider x:Name="SliderPlayA" DockPanel.Dock="Right" TickPlacement="TopLeft"  IsSnapToTickEnabled="True"
+                                TickFrequency="{Binding ElementName=MediaA, Path=PositionStep, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                                SmallChange="{Binding ElementName=MediaA, Path=PositionStep, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                                Minimum="0" IsMoveToPointEnabled="True" Focusable="False"
+                                Maximum="{Binding ElementName=MediaA, Path=NaturalDuration, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                                Value="{Binding ElementName=MediaA, Path=Position, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"/>
+                    </DockPanel>
+                    <DockPanel Grid.Row="3" Grid.Column="0">
+                        <Controls:RangeSlider x:Name="RangeSliderPlayA" DockPanel.Dock="Right" IsEnabled="{Binding IsChecked, ElementName=ToggleRangeMode}"
+                            Minimum="{Binding ElementName=SliderPlayA, Path=Minimum, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                            Maximum="{Binding ElementName=SliderPlayA, Path=Maximum, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                            LowerValue="{Binding ElementName=FFMainWindow, Path=RangeSliderPlayA_RangeLowerValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            UpperValue="{Binding ElementName=FFMainWindow, Path=RangeSliderPlayA_RangeUpperValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            LowerValueChanged="RangeSliderPlayA_LowerValueChanged" UpperValueChanged="RangeSliderPlayA_UpperValueChanged"
+                            MoveWholeRange="True" TickPlacement="TopLeft" AutoToolTipPlacement="TopLeft" AutoToolTipPrecision="2"
+                            TickFrequency="{Binding ElementName=MediaA, Path=PositionStep, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                            IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" ExtendedMode="True" MinRangeWidth="1" LargeChange="0.01" />
+                    </DockPanel>
+                    <Border x:Name="BorderA" DockPanel.Dock="Top" Grid.Row="0" Grid.Column="0" ClipToBounds="True" Panel.ZIndex="5"
+                            DragOver="BorderA_DragOver" Drop="BorderA_Drop"  AllowDrop="True" >
+                        <Border.Background>
+                            <ImageBrush ImageSource="res/bg.png" Stretch="UniformToFill"/>
+                        </Border.Background>
+                        <Canvas x:Name="CanvasA" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <ffme:MediaElement x:Name="MediaA" BorderThickness="0" BorderBrush="Black" Padding="0" Margin="0" 
+                                       Stretch="UniformToFill" 
+                                       LoadedBehavior="Pause" UnloadedBehavior="Manual" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" 
+                                       />
+                        </Canvas>
+                    </Border>
+                    <Label Name="AudioOnlyLabelA" Visibility="Collapsed" Content="&#xf028;" FontFamily="{StaticResource FontAwesomeSolid}" Foreground="LightSlateGray" Panel.ZIndex="10" FontSize="100" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Grid Name="OverlayFadeA" Visibility="Hidden" Panel.ZIndex="200" Grid.Row="0">
+                        <TextBlock Background="Black" Opacity="0.3" Panel.ZIndex="20" AllowDrop="False"/>
+                        <ScrollViewer Panel.ZIndex="21" AllowDrop="False" >
+                            <TextBlock Name="OverlayInfoA" Text="" FontFamily="{StaticResource FiraCodeRegular}" Padding="10" Foreground="White" AllowDrop="False"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+
+
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="40px"/>
+                        <RowDefinition Height="25px"/>
+                        <RowDefinition Height="20px"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="1" Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="250px"></ColumnDefinition>
+                            <ColumnDefinition Width="1*" MinWidth="100"></ColumnDefinition>
+                            <ColumnDefinition Width="250px"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Vertical" Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Label Content="&#xF017;" FontFamily="{StaticResource FontAwesome}" ToolTip="Current Playtime" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                                <!--<Label x:Name="LabelMediaBLeft" Height="20px" Padding="2px" HorizontalContentAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                   Content="{Binding ElementName=FFMainWindow, Path=LabelMediaBLeft_ContentValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />-->
+                                <Label MinWidth="80" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}"
+                                    Content="{Binding ElementName=MediaB, Path=Position, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToStringConverter}}"/>
+                                <!--<Label Content="Frame:" Width="40" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalAlignment="Bottom"/>-->
+                                <!--<Label Width="45" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}">
+                                    <Label.Content>
+                                        <MultiBinding Converter="{StaticResource TimeSpanToFramesConverter}">
+                                            <Binding ElementName="MediaB" Path="Position" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                            <Binding ElementName="MediaB" Path="VideoFrameRate" Mode="OneWay" UpdateSourceTrigger="PropertyChanged" />
+                                        </MultiBinding>
+                                    </Label.Content>
+                                </Label>-->
+                                <Label Content="F:" Width="20" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalAlignment="Bottom"/>
+                                <Label Width="150" Height="20px" Padding="2px" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}">
+                                    <Label.Content>
+                                        <MultiBinding Converter="{StaticResource TimeSpanToFramesConverter}">
+                                            <Binding ElementName="MediaB" Path="Position" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                            <Binding ElementName="MediaB" Path="VideoFrameRate" Mode="OneWay" UpdateSourceTrigger="PropertyChanged" />
+                                            <Binding ElementName="MediaB" Path="NaturalDuration" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                        </MultiBinding>
+                                    </Label.Content>
+                                </Label>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Label Content="&#xF2F6;" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Range In-Point" HorizontalContentAlignment="Left" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                                <Label Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}">
+                                    <Label.Content>
+                                        <MultiBinding Converter="{StaticResource TimeSpanWithOffsetToStringConverter}">
+                                            <Binding ElementName="MediaB" Path="Position" Mode="OneWay"/>
+                                            <Binding ElementName="MediaB" Path="Tag" Mode="OneWay"/>
+                                        </MultiBinding>
+                                    </Label.Content>
+                                </Label>
+                                <!--<Label x:Name="LabelMediaBInPoint" Height="20px" Padding="2px" HorizontalContentAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                   Content="{Binding ElementName=FFMainWindow, Path=LabelMediaBInPoint_ContentValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />-->
+                            </StackPanel>
+                        </StackPanel>
+                        <!--<Button Grid.Column="1" x:Name="ButtonPlayB"  Width="40px" Content="&#xf04b;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalAlignment="Center" VerticalAlignment="Center"></Button>-->
+                        <ToggleButton x:Name="ButtonPlayB" Grid.Column="1" IsChecked="{Binding ElementName=MediaB, Path=IsPlaying, Mode=OneWay, UpdateSourceTrigger=Default}" Width="40px" Content="&#xf04b;" FontSize="16px" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Play" HorizontalAlignment="Center" VerticalAlignment="Center"></ToggleButton>
+                        <StackPanel Orientation="Vertical" Grid.Column="2">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                
+                                <!--<Label x:Name="LabelMediaBRight" Height="20px" Padding="2px" HorizontalContentAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                   Content="{Binding ElementName=FFMainWindow, Path=LabelMediaBRight_ContentValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />-->
+                                
+                                <!--<Label Content="Frames:" Width="45" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalAlignment="Bottom"/>
+                                <Label Width="50" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}">
+                                    <Label.Content>
+                                        <MultiBinding Converter="{StaticResource TimeSpanToFramesConverter}">
+                                            <Binding ElementName="MediaB" Path="NaturalDuration" Mode="OneWay" UpdateSourceTrigger="PropertyChanged"/>
+                                            <Binding ElementName="MediaB" Path="VideoFrameRate" Mode="OneWay" UpdateSourceTrigger="PropertyChanged" />
+                                        </MultiBinding>
+                                    </Label.Content>
+                                </Label>-->
+                                <Label MinWidth="90" Height="20px" Padding="2px" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}"
+                                    Content="{Binding ElementName=MediaB, Path=NaturalDuration, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToStringConverter}}"/>
+                                <Label Content="&#xF28D;" FontFamily="{StaticResource FontAwesome}" ToolTip="Clip End" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Label x:Name="LabelMediaBOutPoint" Height="20px" Padding="2px" HorizontalContentAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontFamily="{StaticResource FiraCodeRegular}"
+                                   Content="{Binding ElementName=FFMainWindow, Path=LabelMediaBOutPoint_ContentValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <Label Content="&#xF2F6;" FontFamily="{StaticResource FontAwesomeSolid}" ToolTip="Range Out-Point" HorizontalContentAlignment="Right" VerticalContentAlignment="Bottom" Width="23" Height="20" FontSize="13" Padding="3" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                    <DockPanel Grid.Row="2" Grid.Column="0">
+                        <Slider x:Name="SliderPlayB" Height="20px" DockPanel.Dock="Right" TickPlacement="TopLeft" IsSnapToTickEnabled="True"
+                                TickFrequency="{Binding ElementName=MediaB, Path=PositionStep, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                                SmallChange="{Binding ElementName=MediaB, Path=PositionStep, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                                Minimum="0" IsMoveToPointEnabled="True" Focusable="False"
+                                Maximum="{Binding ElementName=MediaB, Path=NaturalDuration, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}"
+                                Value="{Binding ElementName=MediaB, Path=Position, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanToDoubleConverter}}" Margin="0,2,0,3"/>
+                    </DockPanel>
+                    <DockPanel Grid.Row="3">
+                        <Button Name="ButtonStopRender" Content="&#xF28D;" IsEnabled="False" DockPanel.Dock="Right" FontFamily="{StaticResource FontAwesomeSolid}" FontSize="14px" Padding="2" VerticalAlignment="Center" ToolTip="Stop current render" Click="ButtonStopRender_Click"/>
+                        <ProgressBar Name="ProgressFF" Value="0" HorizontalAlignment="Stretch" DockPanel.Dock="Left" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" />
+                    </DockPanel>
+                    <Border x:Name="BorderB" Grid.Row="0" Grid.Column="0" ClipToBounds="True" 
+                            Drop="BorderB_Drop" DragOver="BorderB_DragOver" AllowDrop="True" Panel.ZIndex="5">
+                        <Border.Background>
+                            <ImageBrush ImageSource="res/bg.png" Stretch="UniformToFill"/>
+                        </Border.Background>
+                        <Canvas x:Name="CanvasB" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <ffme:MediaElement x:Name="MediaB"
+                                       Stretch="UniformToFill" 
+                                       LoadedBehavior="Pause" UnloadedBehavior="Manual"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                       />
+                        </Canvas>
+                    </Border>
+                    <Grid Name="OverlayFadeB" Visibility="Hidden" Panel.ZIndex="19" Grid.Row="0">
+                        <TextBlock Background="Black" Opacity="0.3" AllowDrop="False" Panel.ZIndex="20"/>
+                        <ScrollViewer Panel.ZIndex="21" AllowDrop="False" >
+                            <TextBlock Name="OverlayInfoB" Text="" FontFamily="{StaticResource FiraCodeRegular}" Padding="10" Foreground="White" AllowDrop="False" Panel.ZIndex="22"/>
+                        </ScrollViewer>
+                    </Grid>
+                    <Label Name="LabelRightProgressCount" Content="{Binding ElementName=ProgressFF, Path=Value, Converter={StaticResource DoubleToPercentConverter}}" Opacity="{Binding ElementName=ProgressFF, Path=Value}" Grid.Row="0" Grid.Column="2" Panel.ZIndex="19" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="72" FontFamily="Segoe UI Black" Foreground="White"/>
+                    <!--<local:CircularProgressBar Width="300" Height="300" Radius="70" StrokeThickness="25" Grid.Row="0" Grid.Column="2" Percentage="{Binding ElementName=ProgressFF, Path=Value}" SegmentColor="Azure" Panel.ZIndex="19" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center" Loaded="CircularProgressBar_Loaded"/>-->
+                    <Label Name="AudioOnlyLabelB" Visibility="Collapsed" Content="&#xf028;" FontFamily="{StaticResource FontAwesomeSolid}"  Grid.Row="0" Foreground="LightSlateGray" Panel.ZIndex="10" FontSize="100" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+                <!--<GridSplitter Grid.Column="1" 
+                      Grid.RowSpan="1" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Stretch"
+                      Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" 
+                      ShowsPreview="true"
+                      Width="5" DragDelta="GridSplitter_DragDelta"/>-->
+            </Grid>
+        </Border>
+        <Grid Grid.Row="4" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.Row="0">
+                <TextBox Name="LogOutput" Text="{Binding ElementName=FFMainWindow, Path=TheLog, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </DockPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                <Button Name="ButtonClearLog" DockPanel.Dock="Right" Content="Clear" Click="ButtonClearLog_Click" Margin="0" Width="50" VerticalAlignment="Center" FontSize="8px" ToolTip="Clear log"/>
+                <Button Name="ButtonCopyLog" DockPanel.Dock="Right" Content="Copy" Click="ButtonCopyLog_Click" Margin="0" Width="50" VerticalAlignment="Center" FontSize="8px" ToolTip="Copy log to clipboard"/>
+                <CheckBox Name="CheckLogFollow" IsChecked="True" Content="Auto-Follow" Margin="0,0,5,2" DockPanel.Dock="Right" VerticalAlignment="Center" FontSize="10px" ToolTip="Automatically scroll to the end of the log when new entries are added."/>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="5" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="0">
+                <ToggleButton DockPanel.Dock="Left" Name="ButtonShowLog" Content="Show Log"
+                                  Padding="5 0 5 0" Margin="0" VerticalAlignment="Center" ToolTip="Show Log" Click="ButtonShowLog_Click"
+                                  IsChecked="{Binding ElementName=FFMainWindow, Path=ToggleShowLog_Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <Label Name="LeftStatus" DockPanel.Dock="Left"
+                   Content="{Binding ElementName=FFMainWindow, Path=LabelLeftStatus_ContentValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+            </DockPanel>
+            <DockPanel Grid.Column="1">
+
+                <Label Name="RightStatus" DockPanel.Dock="Right"
+                   Content="{Binding ElementName=FFMainWindow, Path=LabelRightStatus_ContentValue, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            </DockPanel>
+        </Grid>
+    </Grid>
+</Controls:MetroWindow>

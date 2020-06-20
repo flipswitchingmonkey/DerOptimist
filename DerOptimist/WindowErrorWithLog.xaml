@@ -1,0 +1,25 @@
+﻿<Window x:Class="DerOptimist.WindowErrorWithLog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DerOptimist"
+        mc:Ignorable="d"
+        x:Name="ErrorWindow"
+        Title="WindowErrorWithLog" Height="350" Width="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="25"/>
+        </Grid.RowDefinitions>
+        <Label Content="{Binding ElementName=ErrorWindow, Path=ErrorMessage, Mode=OneWay, UpdateSourceTrigger=Default}" Grid.Row="0" FontWeight="Bold"/>
+        <DockPanel Grid.Row="1" >
+            <Label Content="Error Log" DockPanel.Dock="Top" Height="20" FontSize="10" Padding="5 2" VerticalContentAlignment="Bottom" FontWeight="Bold"/>
+            <ScrollViewer Height="Auto" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" DockPanel.Dock="Bottom">
+                <TextBox Name="Log" Text="{Binding ElementName=ErrorWindow, Path=ErrorLog, Mode=OneWay, UpdateSourceTrigger=Default}" IsReadOnly="True"/>
+            </ScrollViewer>
+        </DockPanel>
+        <Button Name="ButtonOK" Content="OK" Grid.Row="2" Click="ButtonOK_Click"/>
+    </Grid>
+</Window>

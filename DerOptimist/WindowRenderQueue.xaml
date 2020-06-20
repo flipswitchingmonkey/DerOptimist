@@ -1,0 +1,160 @@
+﻿<Controls:MetroWindow x:Class="DerOptimist.WindowRenderQueue"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DerOptimist"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        mc:Ignorable="d"
+        x:Name="FFRenderQueue"
+        Title="Render Queue" Height="510" Width="1000">
+    <Controls:MetroWindow.Resources>
+        <local:QueueStatusToStringConverter x:Key="QueueStatusToStringConverter"/>
+        <local:DoubleToPercentConverter x:Key="DoubleToPercentConverter"/>
+        <Style x:Key="Body_Content_DataGrid_Centering"
+        TargetType="{x:Type DataGridCell}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Controls:MetroWindow.Resources>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <!--<ColumnDefinition Width="Auto"/>-->
+            <!--<ColumnDefinition Width="1*"/>-->
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30px"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.Row="0" Grid.Column="0" >
+                <Button x:Name="ButtonEncodeAll" Content="Start All Queued" Click="ButtonEncodeAll_Click" Width="Auto" DockPanel.Dock="Left" Margin="0 0 5 0" Padding="15 0"/>
+                <Label Content="Max Concurrent Encoding:" DockPanel.Dock="Left"/>
+                <Controls:NumericUpDown Name="NumMaxConcurrentEncoding" Value="{Binding MaxConcurrentEncoding, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80" DockPanel.Dock="Left"/>
+                <Button x:Name="ButtonDelete" Content="Remove Selected From Queue" Click="MenuItem_Delete_Click" Width="Auto" DockPanel.Dock="Right" Margin="5 0 0 0" Padding="15 0"/>
+                <Button x:Name="ButtonExplorerSelectSource" Content="Change Output Path For Selected" Click="MenuItem_ChangeOutputPath_Click" Width="Auto" DockPanel.Dock="Right" Margin="5 0" Padding="15 0"/>
+                <Label  DockPanel.Dock="Left"/>
+            </DockPanel>
+            <Grid Grid.Row="1" Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <DataGrid x:Name="DataGridRenderQueue" AutoGenerateColumns="False" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                      IsReadOnly="True" AllowDrop="True" DragOver="DataGridRenderQueue_DragOver" Drop="DataGridRenderQueue_Drop"
+                      SelectedCellsChanged="DataGridRenderQueue_SelectedCellsChanged" VerticalContentAlignment="Center"
+                      KeyDown="DataGridRenderQueue_KeyDown" SelectionMode="Single" MouseDoubleClick="DataGridRenderQueue_MouseDoubleClick"
+                      >
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <EventSetter Event="PreviewMouseDown" Handler="DataGridCell_PreviewMouseDown" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                    <Grid Background="{TemplateBinding Background}">
+                                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="30">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Name="ButtonDeleteItem" Click="ButtonDeleteSelected_Click" Width="30" Content="X" Foreground="Red" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="" Width="70">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Name="RenderQueueItem" Click="RenderQueueItem_Click" Width="70" Content="{Binding Status, Converter={StaticResource QueueStatusToStringConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Binding="{Binding Progress, Converter={StaticResource DoubleToPercentConverter}}" Header="Progress"/>
+                    <DataGridTextColumn Binding="{Binding SourcePath}" Header="Source" Width="250">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource Body_Content_DataGrid_Centering}">
+                                <Setter Property="ToolTip" Value="{Binding SourcePath}" />
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Binding="{Binding OutputPath}" Header="Output" Width="250">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource Body_Content_DataGrid_Centering}">
+                                <Setter Property="ToolTip" Value="{Binding OutputPath}" />
+                                <EventSetter Event="MouseDoubleClick" Handler="DataGridCellOutputPath_MouseDoubleClick"/>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    
+                    <DataGridTextColumn Binding="{Binding EncoderVideo.Name}" Header="Video"/>
+                    <DataGridTextColumn Binding="{Binding QualityVideo}" Header="Quality"/>
+                    <DataGridTextColumn Binding="{Binding PixFmt}" Header="PixFmt"/>
+                    <DataGridTextColumn Binding="{Binding EncoderAudio.Name}" Header="Audio"/>
+                    <DataGridTextColumn Binding="{Binding QualityAudio}" Header="Quality"/>
+                    <DataGridTextColumn Binding="{Binding Width}" Header="Width"/>
+                    <DataGridTextColumn Binding="{Binding Height}" Header="Height"/>
+                    <DataGridTextColumn Binding="{Binding FrameRate}" Header="Fps"/>
+                    <DataGridTextColumn Binding="{Binding RangeStart}" Header="Start" Width="80"/>
+                    <DataGridTextColumn Binding="{Binding RangeEnd}" Header="End" Width="80"/>
+                    <DataGridTextColumn Binding="{Binding Duration}" Header="Duration" Width="80"/>
+                    <DataGridTextColumn Binding="{Binding FfmpegParameters}" Header="ffmpeg" Width="150">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource Body_Content_DataGrid_Centering}">
+                                <Setter Property="ToolTip" Value="{Binding FfmpegParameters}" />
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="MenuItem_StartEncoding" Header="Start Encoding" Click="MenuItem_StartEncoding_Click"/>
+                        <MenuItem x:Name="MenuItem_Delete" Header="Delete" Click="MenuItem_Delete_Click"/>
+                        <MenuItem x:Name="MenuItem_ChangeOutputPath" Header="Change Output path" Click="MenuItem_ChangeOutputPath_Click"/>
+                        <MenuItem x:Name="MenuItem_CopyOutputPath" Header="Copy Output path" Click="MenuItem_CopyOutputPath_Click"/>
+                        <MenuItem x:Name="MenuItem_ExplorerSelectSource" Header="Explorer Source" Click="MenuItem_ExplorerSelectSource_Click"/>
+                        <MenuItem x:Name="MenuItem_CopySourcePath" Header="Copy Source path" Click="MenuItem_CopySourcePath_Click"/>
+                        <MenuItem x:Name="MenuItem_CopyFfmpeg" Header="Copy ffmpeg parameters" Click="MenuItem_CopyFfmpeg_Click"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+                <GridSplitter Grid.Row="0" Grid.Column="1" 
+                      Grid.RowSpan="1" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Stretch"
+                      Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" 
+                      ShowsPreview="true"
+                      Width="3"/>
+                <Grid Grid.Row="0" Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="30px"/>
+                    </Grid.RowDefinitions>
+                    <local:RenderSettingsControl x:Name="RSControl" Grid.Row="0" Grid.Column="0"/>
+                    <DockPanel Grid.Row="1" Grid.Column="0" >
+                        <!--<Button x:Name="SidebarButtonOpen" Content="Open as current" Click="MenuItemOpen_Click" Width="Auto" DockPanel.Dock="Left"/>-->
+                        <!--<Button x:Name="SidebarButtonDelete" Content="Delete" Click="MenuItem_Delete_Click" Width="Auto" DockPanel.Dock="Right"/>-->
+                        <!--<Button x:Name="ButtonExplorerSelectSource" Content="Open Source" Click="Button_OpenSource_Click" Width="Auto" DockPanel.Dock="Left"/>-->
+                        <!--<Button x:Name="ButtonExplorerSelectPreview" Content="Open Output" Click="Button_OpenPreview_Click" Width="Auto" DockPanel.Dock="Left"/>-->
+                        <Label  DockPanel.Dock="Left"/>
+                    </DockPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Controls:MetroWindow>
